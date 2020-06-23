@@ -15,7 +15,15 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@readers-digest/auth/feature-shell": [
+        "libs/auth/feature-shell/src/index.ts"
+      ],
+      "@readers-digest/auth/data-access-auth": [
+        "libs/auth/data-access-auth/src/index.ts"
+      ],
+      "@readers-digest/auth/ui": ["libs/auth/ui/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }

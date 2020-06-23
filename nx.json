@@ -18,5 +18,22 @@
       }
     }
   },
-  "projects": {}
+  "projects": {
+    "digest-admin": {
+      "tags": []
+    },
+    "digest-admin-e2e": {
+      "tags": [],
+      "implicitDependencies": ["digest-admin"]
+    },
+    "auth-feature-shell": {
+      "tags": []
+    },
+    "auth-data-access-auth": {
+      "tags": []
+    },
+    "auth-ui": {
+      "tags": []
+    }
+  }
 }

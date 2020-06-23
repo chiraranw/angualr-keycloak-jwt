@@ -1,7 +1,224 @@
 {
   "version": 1,
-  "projects": {},
+  "projects": {
+    "digest-admin": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "apps/digest-admin",
+      "sourceRoot": "apps/digest-admin/src",
+      "prefix": "readers-digest",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/apps/digest-admin",
+            "index": "apps/digest-admin/src/index.html",
+            "main": "apps/digest-admin/src/main.ts",
+            "polyfills": "apps/digest-admin/src/polyfills.ts",
+            "tsConfig": "apps/digest-admin/tsconfig.app.json",
+            "aot": true,
+            "assets": [
+              "apps/digest-admin/src/favicon.ico",
+              "apps/digest-admin/src/assets"
+            ],
+            "styles": ["apps/digest-admin/src/styles.css"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "apps/digest-admin/src/environments/environment.ts",
+                  "with": "apps/digest-admin/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "digest-admin:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "digest-admin:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "digest-admin:build"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "apps/digest-admin/tsconfig.app.json",
+              "apps/digest-admin/tsconfig.spec.json"
+            ],
+            "exclude": ["**/node_modules/**", "!apps/digest-admin/**/*"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "apps/digest-admin/jest.config.js",
+            "tsConfig": "apps/digest-admin/tsconfig.spec.json",
+            "passWithNoTests": true,
+            "setupFile": "apps/digest-admin/src/test-setup.ts"
+          }
+        }
+      }
+    },
+    "digest-admin-e2e": {
+      "root": "apps/digest-admin-e2e",
+      "sourceRoot": "apps/digest-admin-e2e/src",
+      "projectType": "application",
+      "architect": {
+        "e2e": {
+          "builder": "@nrwl/cypress:cypress",
+          "options": {
+            "cypressConfig": "apps/digest-admin-e2e/cypress.json",
+            "tsConfig": "apps/digest-admin-e2e/tsconfig.e2e.json",
+            "devServerTarget": "digest-admin:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "digest-admin:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": ["apps/digest-admin-e2e/tsconfig.e2e.json"],
+            "exclude": ["**/node_modules/**", "!apps/digest-admin-e2e/**/*"]
+          }
+        }
+      }
+    },
+    "auth-feature-shell": {
+      "projectType": "library",
+      "root": "libs/auth/feature-shell",
+      "sourceRoot": "libs/auth/feature-shell/src",
+      "prefix": "readers-digest",
+      "architect": {
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "libs/auth/feature-shell/tsconfig.lib.json",
+              "libs/auth/feature-shell/tsconfig.spec.json"
+            ],
+            "exclude": ["**/node_modules/**", "!libs/auth/feature-shell/**/*"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "libs/auth/feature-shell/jest.config.js",
+            "tsConfig": "libs/auth/feature-shell/tsconfig.spec.json",
+            "passWithNoTests": true,
+            "setupFile": "libs/auth/feature-shell/src/test-setup.ts"
+          }
+        }
+      },
+      "schematics": {}
+    },
+    "auth-data-access-auth": {
+      "projectType": "library",
+      "root": "libs/auth/data-access-auth",
+      "sourceRoot": "libs/auth/data-access-auth/src",
+      "prefix": "readers-digest",
+      "architect": {
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "libs/auth/data-access-auth/tsconfig.lib.json",
+              "libs/auth/data-access-auth/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**",
+              "!libs/auth/data-access-auth/**/*"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "libs/auth/data-access-auth/jest.config.js",
+            "tsConfig": "libs/auth/data-access-auth/tsconfig.spec.json",
+            "passWithNoTests": true,
+            "setupFile": "libs/auth/data-access-auth/src/test-setup.ts"
+          }
+        }
+      },
+      "schematics": {}
+    },
+    "auth-ui": {
+      "projectType": "library",
+      "root": "libs/auth/ui",
+      "sourceRoot": "libs/auth/ui/src",
+      "prefix": "readers-digest",
+      "architect": {
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "libs/auth/ui/tsconfig.lib.json",
+              "libs/auth/ui/tsconfig.spec.json"
+            ],
+            "exclude": ["**/node_modules/**", "!libs/auth/ui/**/*"]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "libs/auth/ui/jest.config.js",
+            "tsConfig": "libs/auth/ui/tsconfig.spec.json",
+            "passWithNoTests": true,
+            "setupFile": "libs/auth/ui/src/test-setup.ts"
+          }
+        }
+      },
+      "schematics": {}
+    }
+  },
   "cli": {
-    "defaultCollection": "@nrwl/workspace"
-  }
+    "defaultCollection": "@nrwl/angular"
+  },
+  "schematics": {
+    "@nrwl/angular:application": {
+      "unitTestRunner": "jest",
+      "e2eTestRunner": "cypress"
+    },
+    "@nrwl/angular:library": {
+      "unitTestRunner": "jest"
+    }
+  },
+  "defaultProject": "digest-admin"
 }
