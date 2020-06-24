@@ -1,16 +1,10 @@
 import {Injectable} from "@angular/core";
 import {Actions, Effect, ofType} from "@ngrx/effects";
-import {
-    AuthService,
-    AuthActionTypes,
-    AuthActions,
-    Login,
-    LoginSuccess,
-    LoginFail
-} from "@readers-digest/auth/data-access-auth";
 import {Observable, of} from "rxjs";
 import {catchError, map, tap} from "rxjs/operators";
 import {Router} from "@angular/router";
+import {AuthService} from "../../services/auth.service";
+import {AuthActions, AuthActionTypes, LoginFail, LoginSuccess} from "../action/auth.action";
 
 @Injectable()
 export class AuthEffects {

@@ -1,5 +1,5 @@
-import {AuthActions, AuthActionTypes} from '@readers-digest/auth/data-access-auth'
-import {User} from '@readers-digest/auth/data-access-auth';
+import {AuthActions, AuthActionTypes} from '../action/auth.action'
+import {User} from '../../model/user';
 
 export interface AuthState {
     user: User,
