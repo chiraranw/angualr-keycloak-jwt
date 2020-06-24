@@ -25,5 +25,9 @@ export function AuthReducer(state = initialState, action: AuthActions): AuthStat
             console.log("LOGIN_FAIL")
             return {...state, error: action.payload, loaded: false}
         }
+        default:{
+            console.log("Default...",action)
+            return state;
+        }
     }
 }
