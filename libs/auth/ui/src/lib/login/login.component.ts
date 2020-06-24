@@ -23,9 +23,9 @@ export class LoginComponent implements OnInit {
   }
 
   public submit(): void {
-    //get values here
-    let authObj: AuthModel = {username: "", password: ""};
+    let authObj: AuthModel = {username: this.loginForm.value.username, password:this.loginForm.value.password};
     this.login.emit(authObj);
+    console.log("Emitting :",authObj)
   }
 
 }
