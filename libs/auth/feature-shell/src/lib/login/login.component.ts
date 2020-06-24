@@ -12,14 +12,14 @@ export class LoginComponent implements OnInit {
 
   public error$:Observable<any>;
 
-  constructor() { }
+  constructor(private store:Store) { }
 
   ngOnInit(): void {
   }
 
   login(authModel:AuthModel){
     console.log("About to log with:",authModel)
-    //this.store.dispatch(new Login(authModel))
+    this.store.dispatch(new Login(authModel))
 
   }
 

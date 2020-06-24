@@ -11,6 +11,7 @@ export class AuthService {
     }
 
     authenticate(auth: AuthModel): User {
+        console.log("Service...",auth)
         let temp: User = {username: "chiraranw", name: "nation", role: "admin", token: "token"};
         return temp;
     }

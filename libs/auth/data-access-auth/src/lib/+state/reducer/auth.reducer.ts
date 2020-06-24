@@ -14,12 +14,15 @@ export const initialState: AuthState = {
 export function AuthReducer(state = initialState, action: AuthActions): AuthState {
     switch (action.type) {
         case AuthActionTypes.LOGIN: {
+            console.log("LOGIN")
             return state;
         }
         case AuthActionTypes.LOGIN_SUCCESS: {
+            console.log("LOGIN_SUCCESS")
             return {...state, user: action.payload}
         }
         case AuthActionTypes.LOGIN_FAIL: {
+            console.log("LOGIN_FAIL")
             return {...state, error: action.payload, loaded: false}
         }
     }
