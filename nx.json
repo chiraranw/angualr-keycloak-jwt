@@ -34,6 +34,9 @@
     },
     "auth-ui": {
       "tags": []
+    },
+    "readers-digest-dashboard-feature-shell": {
+      "tags": []
     }
   }
 }

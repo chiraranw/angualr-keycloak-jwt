@@ -30,7 +30,7 @@ export class AuthEffects {
         ofType<AuthActions>(AuthActionTypes.LOGIN_SUCCESS),
         tap(user => {
             console.log("login Success effect", user)
-            this.router.navigate(["/"]);
+            this.router.navigate(["/dashboard"]);
         })
     );
 

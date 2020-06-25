@@ -206,6 +206,37 @@
         }
       },
       "schematics": {}
+    },
+    "readers-digest-dashboard-feature-shell": {
+      "projectType": "library",
+      "root": "libs/readers-digest/dashboard/feature-shell",
+      "sourceRoot": "libs/readers-digest/dashboard/feature-shell/src",
+      "prefix": "readers-digest",
+      "architect": {
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "libs/readers-digest/dashboard/feature-shell/tsconfig.lib.json",
+              "libs/readers-digest/dashboard/feature-shell/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**",
+              "!libs/readers-digest/dashboard/feature-shell/**/*"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "libs/readers-digest/dashboard/feature-shell/jest.config.js",
+            "tsConfig": "libs/readers-digest/dashboard/feature-shell/tsconfig.spec.json",
+            "passWithNoTests": true,
+            "setupFile": "libs/readers-digest/dashboard/feature-shell/src/test-setup.ts"
+          }
+        }
+      },
+      "schematics": {}
     }
   },
   "cli": {
