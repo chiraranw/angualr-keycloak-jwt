@@ -1,18 +1,38 @@
 import {Injectable} from '@angular/core';
 import {Observable, of} from "rxjs";
 import {User} from "@readers-digest/auth/data-access-auth";
+import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
+import {map} from "rxjs/operators";
 
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
+    const
+    tokenURL = "http://localhost:8080/auth/realms/angular/protocol/openid-connect/token";
 
-    constructor() {
+    constructor(private http: HttpClient) {
     }
 
-    authenticate(auth: AuthModel):Observable<User> {
-        console.log("Service...",auth)
-        let temp: User = {username: "chiraranw", name: "nation", role: "admin", token: "token"};
-        return of(temp);
+    public authenticate(auth: AuthModel) {
+        const body = new HttpParams({
+            fromObject: {
+                client_id: 'angular-login',
+                username: auth.username,
+                password: auth.password,
+                grant_type: 'password'
+            }
+        });
+        const headers = new HttpHeaders(
+            {
+                Accept: 'application/json',
+                'Content-Type': `application/x-www-form-urlencoded`
+            }
+        );
+        const options = {headers};
+        return this.http.post(this.tokenURL, body, options).pipe(
+            map(data => console.log("Token",data))
+        );
+
     }
 }
