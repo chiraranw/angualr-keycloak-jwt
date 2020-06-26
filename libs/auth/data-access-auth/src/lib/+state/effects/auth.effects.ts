@@ -14,13 +14,12 @@ export class AuthEffects {
         private router: Router) {
     }
 
-
-
     @Effect()
     login$ = this.actions.pipe(
         ofType<AuthActions>(AuthActionTypes.LOGIN),
         switchMap(action => { return this.authService.authenticate(action.payload).pipe(
-            map(user => new LoginSuccess(user)),
+
+            map(response => new LoginSuccess(response)),
             catchError(err => of(new LoginFail(err)))
         )})
     );
