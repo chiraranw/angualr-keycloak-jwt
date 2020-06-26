@@ -37,6 +37,12 @@
     },
     "readers-digest-dashboard-feature-shell": {
       "tags": []
+    },
+    "readers-digest-user-data-access": {
+      "tags": []
+    },
+    "readers-digest-user-feature-shell": {
+      "tags": []
     }
   }
 }

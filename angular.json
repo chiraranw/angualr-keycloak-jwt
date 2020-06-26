@@ -237,6 +237,68 @@
         }
       },
       "schematics": {}
+    },
+    "readers-digest-user-data-access": {
+      "projectType": "library",
+      "root": "libs/readers-digest/user/data-access",
+      "sourceRoot": "libs/readers-digest/user/data-access/src",
+      "prefix": "readers-digest",
+      "architect": {
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "libs/readers-digest/user/data-access/tsconfig.lib.json",
+              "libs/readers-digest/user/data-access/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**",
+              "!libs/readers-digest/user/data-access/**/*"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "libs/readers-digest/user/data-access/jest.config.js",
+            "tsConfig": "libs/readers-digest/user/data-access/tsconfig.spec.json",
+            "passWithNoTests": true,
+            "setupFile": "libs/readers-digest/user/data-access/src/test-setup.ts"
+          }
+        }
+      },
+      "schematics": {}
+    },
+    "readers-digest-user-feature-shell": {
+      "projectType": "library",
+      "root": "libs/readers-digest/user/feature-shell",
+      "sourceRoot": "libs/readers-digest/user/feature-shell/src",
+      "prefix": "readers-digest",
+      "architect": {
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "libs/readers-digest/user/feature-shell/tsconfig.lib.json",
+              "libs/readers-digest/user/feature-shell/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**",
+              "!libs/readers-digest/user/feature-shell/**/*"
+            ]
+          }
+        },
+        "test": {
+          "builder": "@nrwl/jest:jest",
+          "options": {
+            "jestConfig": "libs/readers-digest/user/feature-shell/jest.config.js",
+            "tsConfig": "libs/readers-digest/user/feature-shell/tsconfig.spec.json",
+            "passWithNoTests": true,
+            "setupFile": "libs/readers-digest/user/feature-shell/src/test-setup.ts"
+          }
+        }
+      },
+      "schematics": {}
     }
   },
   "cli": {

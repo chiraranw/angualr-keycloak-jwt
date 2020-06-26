@@ -25,6 +25,12 @@
       "@readers-digest/auth/ui": ["libs/auth/ui/src/index.ts"],
       "@readers-digest/readers-digest/dashboard/feature-shell": [
         "libs/readers-digest/dashboard/feature-shell/src/index.ts"
+      ],
+      "@readers-digest/readers-digest/user/data-access": [
+        "libs/readers-digest/user/data-access/src/index.ts"
+      ],
+      "@readers-digest/readers-digest/user/feature-shell": [
+        "libs/readers-digest/user/feature-shell/src/index.ts"
       ]
     }
   },
