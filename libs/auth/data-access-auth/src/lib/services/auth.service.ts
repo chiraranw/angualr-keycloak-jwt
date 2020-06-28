@@ -4,6 +4,7 @@ import {User} from "@readers-digest/auth/data-access-auth";
 import {HttpClient, HttpHeaders, HttpParams} from "@angular/common/http";
 import {map, tap} from "rxjs/operators";
 import {AuthResponse} from "../model/auth.response";
+import {Router} from "@angular/router";
 
 @Injectable({
     providedIn: 'root'
@@ -14,7 +15,7 @@ export class AuthService {
     const
     baseURL = "http://localhost:8080/auth/realms/angular/protocol/openid-connect";
 
-    constructor(private http: HttpClient) {
+    constructor(private http: HttpClient, private router:Router) {
     }
 
     public authenticate(auth: AuthModel): Observable<any> {
@@ -34,12 +35,13 @@ export class AuthService {
         );
         const options = {headers};
         return this.http.post(this.baseURL+'/token', body, options).pipe(
-            tap((response: AuthResponse) => this.persistTokens(response))
+            tap((response: AuthResponse) => AuthService.persistTokens(response))
         );
 
     }
 
     public refreshToken(){
+        console.log("About to refresh...")
         const body = new HttpParams({
             fromObject: {
                 client_id: 'angular-login',
@@ -55,11 +57,12 @@ export class AuthService {
         );
         const options = {headers};
         return this.http.post(this.baseURL+'/token', body, options).pipe(
-            tap((response:AuthResponse)=>this.persistTokens(response))
+            tap((response:AuthResponse)=> AuthService.persistTokens(response))
         );
     }
 
-    private persistTokens(authResp: AuthResponse) {
+    private static persistTokens(authResp: AuthResponse) {
+        console.log("saving the tokens...")
         localStorage.setItem("jwt_token", authResp.access_token);
         localStorage.setItem("refresh_token", authResp.refresh_token);
     }
@@ -73,7 +76,14 @@ export class AuthService {
     }
 
     public testMethod(){
-      return   this.http.get("https://jsonplaceholder.typicode.com/todos/1")
+      return   this.http.get("http://localhost:8081/api/v1/users/test")
+    }
+
+    public logout(){
+        localStorage.removeItem("jwt_token");
+        localStorage.removeItem("refresh_token");
+        this.router.navigate(["/"]);
+        console.log("Loging user out...")
     }
 
 }
