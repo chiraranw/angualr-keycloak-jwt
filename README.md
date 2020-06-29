@@ -76,3 +76,122 @@ So we send a POST request to the same url about, but this time with different pa
 ````
 
 This way we get a new Access Token and a new Refresh Token.
+
+
+    This way we get a new Access Token and a new Refresh Token.
+
+### HttpInterceptor & Refreshing Logic
+
+When the access token expires, we need not prompt the user to provide username and passowrd to get a new token. Rather we use
+the refresh token to obtain a new access - again the user does not need to know that this what is happening. To accomplish this
+we use an HttpInterceptor to intercept HttpRequests & HttpResponse. In the Httpresponse we look for Unauthorized Error (4001). Upon
+encountering this, we then trigure code that goes to Keycloak and presents for us the refresh token in an attempt to get another set 
+of tokens. If this request succeeds, we then proceed with the declined requests. If the Refresh Token is incorrect or expired, in that
+case we get a 400 Error. In this case we need to clear existing tokens and redirect the user to Login.
+
+Below in the **HttpInterceptor** that we can use to achieve this:
+
+````Typescript
+@Injectable()
+export class AuthHttpInterceptor implements HttpInterceptor {
+    private isRefreshing = false;
+    private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null)
+
+    constructor(private authService: AuthService) {
+    }
+
+    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        /**
+         * Pipe the token if it exist, but remember to exclude some request
+         * that do not require this
+         * **/
+        if (this.authService.getJWTToken()) {
+            req = AuthHttpInterceptor.addToken(req, this.authService.getJWTToken())
+        }
+        return next.handle(req).pipe(
+            catchError(error => {
+                console.log("error:", error.status)
+                if (error instanceof HttpErrorResponse && error.status === 401) {
+                    /**
+                     * We have found 401, Unauthorized Error so we fire a POST request to Keycloak
+                     * Server to get another set of tokens.
+                     * **/
+                    return this.handle401Error(req, next);
+                } else if (error instanceof HttpErrorResponse && error.status === 400) {
+                    /**
+                     * We have encountered a 400, Bad Request Error. The refresh token presented to
+                     * Keycloak has expired or incorrect, hence, we redirect the user to Login
+                     * **/
+                    this.handle400Error(error);
+                    return throwError(error);
+                } else {
+                    return throwError(error);
+                }
+            })
+        );
+    }
+
+    private handle401Error(request: HttpRequest<any>, next: HttpHandler) {
+        if (!this.isRefreshing) {
+            this.isRefreshing = true;
+            this.refreshTokenSubject.next(null);
+            return this.authService.refreshToken().pipe(
+                switchMap((token: any) => {
+                    this.isRefreshing = false;
+                    this.refreshTokenSubject.next(token.jwt);
+                    return next.handle(AuthHttpInterceptor.addToken(request, token.jwt));
+                }));
+
+        } else {
+            return this.refreshTokenSubject.pipe(
+                filter(token => token != null),
+                take(1),
+                switchMap(jwt => {
+                    return next.handle(AuthHttpInterceptor.addToken(request, jwt));
+                }));
+        }
+    }
+
+    handle400Error(error) {
+        //if (error && error.status === 400 && error.error && error.error.error === 'invalid_grant') {
+        console.log("Found a 400 while trying to refresh a token, likely expired.")
+        // If we get a 400 and the error message is 'invalid_grant', the token is no longer valid so logout.
+        return this.authService.logout();
+    }
+
+    //method to insert the auth header
+    private static addToken(request: HttpRequest<any>, token: string) {
+        return request.clone({
+            setHeaders: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+} 
+````
+
+### Spring Boot REST API | Spring Security | Keycloak
+
+There is a ready to use Adapter for Spring Boot projects
+
+	    <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-spring-boot-starter</artifactId>
+        </dependency>
+
+This dependecny makes the Spring Boot project aware that we are using Keycloak for JWT Authentication.
+We also need to specify the following in our properties file
+	
+	#Keycloak configurations
+	keycloak.auth-server-url=http://localhost:8080/auth
+	keycloak.realm=angular
+	keycloak.public-client=true
+	keycloak.resource=angular-login
+	keycloak.principal-attribute=preferred_username
+
+We need to a WebSecurityConfigurerAdapter for our API, Keycloak comes with one that needs little tweaking
+
+
+
+
+
