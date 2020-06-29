@@ -191,7 +191,59 @@ We also need to specify the following in our properties file
 
 We need to a WebSecurityConfigurerAdapter for our API, Keycloak comes with one that needs little tweaking
 
+````Java
+@Configuration
+public class KeycloakWebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
+    //tasks the SimpleAuthorityMapper to make sure roles are not prefixed with ROLE_
+    @Autowired
+    public void configureGlobal(
+            AuthenticationManagerBuilder auth) throws Exception {
+        KeycloakAuthenticationProvider keycloakAuthenticationProvider
+                = keycloakAuthenticationProvider();
+        keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(
+                new SimpleAuthorityMapper());
+        auth.authenticationProvider(keycloakAuthenticationProvider);
+    }
+
+    //this defines that we want to use the Spring Boot properties file support instead of the default keycloak.json
+    @Bean
+    public KeycloakSpringBootConfigResolver KeycloakConfigResolver() {
+        return new KeycloakSpringBootConfigResolver();
+    }
+
+    @Bean
+    @Override
+    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new RegisterSessionAuthenticationStrategy(
+                new SessionRegistryImpl());
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        super.configure(http);
+        http.cors().and().authorizeRequests()
+                .antMatchers("/api/v1/users/test*")
+                .hasRole("admin") <=== Real Roles here !!!
+                .anyRequest()
+                .permitAll();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200","http://localhost:8080"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Arrays.asList("Access-Control-Allow-Headers","Access-Control-Allow-Origin","Access-Control-Request-Method", "Access-Control-Request-Headers","Origin","Cache-Control", "Content-Type", "Authorization"));
+        configuration.setAllowedMethods(Arrays.asList("DELETE", "GET", "POST", "PATCH", "PUT"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+}
+````
+
+This gets us up and running with Angular | Keycloak | JWTs | Spring Security
 
 
 
