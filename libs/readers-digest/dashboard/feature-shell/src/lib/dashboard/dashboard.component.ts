@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {AuthService} from "@readers-digest/auth/data-access-auth";
-import {catchError, tap} from "rxjs/operators";
+import {catchError, map, retry, tap} from "rxjs/operators";
 import {log} from "util";
 import {of} from "rxjs";
 
@@ -10,15 +10,17 @@ import {of} from "rxjs";
     styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-
+public users=[]
     constructor(private s: AuthService) {
     }
 
     ngOnInit(): void {
-        this.s.testMethod().pipe(
-            tap(res=>console.log("Data..",res)),
-            catchError(err => of(console.log("Error...",err)))
-        ).subscribe();
+        this.s.testMethod().subscribe(
+            (data)=>{
+                this.users=data;
+                console.log("Response...",data)
+            }
+        );
 
     }
 

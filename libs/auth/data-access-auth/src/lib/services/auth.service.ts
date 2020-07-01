@@ -76,7 +76,7 @@ export class AuthService {
     }
 
     public testMethod(){
-      return   this.http.get("http://localhost:8081/api/v1/users/test")
+      return   this.http.get<[]>("http://localhost:8081/api/v1/users/test")
     }
 
     public logout(){
