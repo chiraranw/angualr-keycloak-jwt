@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import {HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from "@angular/common/http";
 import {BehaviorSubject, Observable, throwError} from "rxjs";
 import {AuthService} from "./auth.service";
-import {catchError, filter, switchMap, take} from "rxjs/operators";
+import {catchError, filter, retry, switchMap, take} from "rxjs/operators";
 
 @Injectable()
 export class AuthHttpInterceptor implements HttpInterceptor {
@@ -14,16 +14,20 @@ export class AuthHttpInterceptor implements HttpInterceptor {
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         //Pipe the token if it exist
-        if (this.authService.getJWTToken()) {
-            req = this.addToken(req, this.authService.getJWTToken())
+        if (this.authService.getAccessToken()) {
+            req = this.addToken(req, this.authService.getAccessToken())
         }
         return next.handle(req).pipe(
             catchError(error => {
-                console.log("error:", error.status)
+
+                console.log("Intercepted an error:", error)
                 if (error instanceof HttpErrorResponse && error.status === 401) {
                     return this.handle401Error(req, next);
                 } else if (error instanceof HttpErrorResponse && error.status === 400) {
                     this.handle400Error(error);
+                    return throwError(error);
+                } else if (error instanceof HttpErrorResponse && error.status === 0 && error.statusText === "Unknown Error") {
+                    this.authService.logout();
                     return throwError(error);
                 } else {
                     return throwError(error);
