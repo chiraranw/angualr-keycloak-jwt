@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {Observable} from "rxjs";
 import {Store} from "@ngrx/store";
-import {Login} from "@readers-digest/auth/data-access-auth";
+import {AuthFacadeService, Login} from "@readers-digest/auth/data-access-auth";
 
 @Component({
   selector: 'readers-digest-login-container',
@@ -12,14 +12,14 @@ export class LoginComponent implements OnInit {
 
   public error$:Observable<any>;
 
-  constructor(private store:Store) { }
+  constructor(private authFacade:AuthFacadeService) { }
 
   ngOnInit(): void {
   }
 
   login(authModel:AuthModel){
     console.log("About to log with:",authModel)
-    this.store.dispatch(new Login(authModel))
+    this.authFacade.login(authModel);
 
   }
 

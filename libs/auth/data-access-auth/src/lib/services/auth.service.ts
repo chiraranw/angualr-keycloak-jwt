@@ -6,6 +6,7 @@ import {map, retry, tap} from "rxjs/operators";
 import {AuthResponse} from "../model/auth.response";
 import {Router} from "@angular/router";
 import {JwtHelperService} from "@auth0/angular-jwt";
+import {Store} from "@ngrx/store";
 
 @Injectable({
     providedIn: 'root'
@@ -16,7 +17,10 @@ export class AuthService {
     const
     baseURL = "http://localhost:8080/auth/realms/angular/protocol/openid-connect";
 
-    constructor(private http: HttpClient, private router: Router) {
+    constructor(
+        private http: HttpClient,
+        private router: Router,
+        private store:Store) {
     }
 
     public authenticate(auth: AuthModel): Observable<any> {

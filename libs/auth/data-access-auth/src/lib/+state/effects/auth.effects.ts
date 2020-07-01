@@ -33,4 +33,14 @@ export class AuthEffects {
         })
     );
 
+    @Effect({dispatch: false})
+    logout: Observable<any> = this.actions.pipe(
+        ofType<AuthActions>(AuthActionTypes.LOGOUT),
+        map(error => {
+            this.authService.logout();
+            console.log("logout", error)
+            this.router.navigate(["/"]);
+        })
+    );
+
 }

@@ -1,4 +1,4 @@
-import {AuthActions, AuthActionTypes} from '../action/auth.action'
+import {AuthActions, AuthActionTypes} from '../../+state/action/auth.action'
 import {User} from '../../model/user';
 
 export interface AuthState {
@@ -20,6 +20,10 @@ export function AuthReducer(state = initialState, action: AuthActions): AuthStat
         case AuthActionTypes.LOGIN_SUCCESS: {
             console.log("LOGIN_SUCCESS")
             return {...state, user: action.payload}
+        }
+        case AuthActionTypes.LOGOUT: {
+            console.log("LOGOUT")
+            return {...state, error:action.payload, loaded: false}
         }
         case AuthActionTypes.LOGIN_FAIL: {
             console.log("LOGIN_FAIL")
