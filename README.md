@@ -1,98 +1,249 @@
-# ReadersDigest
+# Angular | Spring Boot REST API | Keycloak
+Assuming Keycloak Server has been set as follows:
 
-This project was generated using [Nx](https://nx.dev).
+	server: localhost:8080
+	realm:  angular
+	client:	angular-keycloak
+	user:	admin,1234
+	client secret: cleint_secret
 
-<p align="center"><img src="https://raw.githubusercontent.com/nrwl/nx/master/nx-logo.png" width="450"></p>
+First we send a `POST` request to the following URL
 
-🔎 **Nx is a set of Extensible Dev Tools for Monorepos.**
+    http://localhost:8080/auth/realms/angular/protocol/openid-connect/token
+    
+		http://localhost:8080/ = Keycloak Server & port
+		angular = the realm specified in Keycloak
+    
+    
+ The `POST` request is sent with the following data
+ 
+````Typescript 
+const body = new HttpParams({
+        fromObject: {
+            client_id: 'angular-login',
+            username: 'admin',
+            password: '1234',
+            grant_type: 'password'
+        }
+    });
+`````
 
-## Quick Start & Documentation
 
-[Nx Documentation](https://nx.dev/angular)
+And we specify the headers
+````Typescript 
+const headers = new HttpHeaders(
+      {
+          Accept: 'application/json',
+          'Content-Type': `application/x-www-form-urlencoded`
+      }
+  );
+`````
 
-[10-minute video showing all Nx features](https://nx.dev/angular/getting-started/what-is-nx)
+The full request looks like the following:
 
-[Interactive Tutorial](https://nx.dev/angular/tutorial/01-create-application)
+     http.post(url, body, headers)
+     
+Successful processing of this request returns
 
-## Adding capabilities to your workspace
 
-Nx supports many plugins which add capabilities for developing different types of applications and different tools.
+        {
+          "access_token": "eyJhb..", <=== The token we send to a Keycloak secured API
+          "expires_in": 300,
+          "refresh_expires_in": 1800,
+          "refresh_token": "eyJhbGciOiJ...", <=== The token we send to Keycloak when our Access token expires
+          "token_type": "bearer",
+          "not-before-policy": 0,
+          "session_state": "ab13f9e3-7f54-4bf3-a606-b7869096ce49",
+          "scope": "email profile"
+        }
 
-These capabilities include generating applications, libraries, etc as well as the devtools to test, and build projects as well.
+We then persist the tokens as per the requirements of the system.
 
-Below are our core plugins:
 
-- [Angular](https://angular.io)
-  - `ng add @nrwl/angular`
-- [React](https://reactjs.org)
-  - `ng add @nrwl/react`
-- Web (no framework frontends)
-  - `ng add @nrwl/web`
-- [Nest](https://nestjs.com)
-  - `ng add @nrwl/nest`
-- [Express](https://expressjs.com)
-  - `ng add @nrwl/express`
-- [Node](https://nodejs.org)
-  - `ng add @nrwl/node`
+## Refreshing JWT in Angular with Keycloak
 
-There are also many [community plugins](https://nx.dev/nx-community) you could add.
+The access_token is bound to expire. When that happens, we will need to refresh and get a new token.
+So we send a POST request to the same url about, but this time with different parameters:
 
-## Generate an application
+````Typescript
+  const body = new HttpParams({
+    fromObject: {
+        client_id: 'angular-login',
+        grant_type: 'refresh_token', <====This changed
+        refresh_token: 'eyJhbGciOiJ...' <==== The refresh token we recieved from the first request
+    }
+  });
+````
 
-Run `ng g @nrwl/angular:app my-app` to generate an application.
+This way we get a new Access Token and a new Refresh Token.
 
-> You can use any of the plugins above to generate applications as well.
 
-When using Nx, you can create multiple applications and libraries in the same workspace.
+    This way we get a new Access Token and a new Refresh Token.
 
-## Generate a library
+### HttpInterceptor & Refreshing Logic
 
-Run `ng g @nrwl/angular:lib my-lib` to generate a library.
+When the access token expires, we need not prompt the user to provide username and passowrd to get a new token. Rather we use
+the refresh token to obtain a new access - again the user does not need to know that this what is happening. To accomplish this
+we use an HttpInterceptor to intercept HttpRequests & HttpResponse. In the Httpresponse we look for Unauthorized Error (4001). Upon
+encountering this, we then trigure code that goes to Keycloak and presents for us the refresh token in an attempt to get another set 
+of tokens. If this request succeeds, we then proceed with the declined requests. If the Refresh Token is incorrect or expired, in that
+case we get a 400 Error. In this case we need to clear existing tokens and redirect the user to Login.
 
-> You can also use any of the plugins above to generate libraries as well.
+Below in the **HttpInterceptor** that we can use to achieve this:
 
-Libraries are sharable across libraries and applications. They can be imported from `@readers-digest/mylib`.
+````Typescript
+@Injectable()
+export class AuthHttpInterceptor implements HttpInterceptor {
+    private isRefreshing = false;
+    private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null)
 
-## Development server
+    constructor(private authService: AuthService) {
+    }
 
-Run `ng serve my-app` for a dev server. Navigate to http://localhost:4200/. The app will automatically reload if you change any of the source files.
+    intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        /**
+         * Pipe the token if it exist, but remember to exclude some request
+         * that do not require this
+         * **/
+        if (this.authService.getJWTToken()) {
+            req = AuthHttpInterceptor.addToken(req, this.authService.getJWTToken())
+        }
+        return next.handle(req).pipe(
+            catchError(error => {
+                console.log("error:", error.status)
+                if (error instanceof HttpErrorResponse && error.status === 401) {
+                    /**
+                     * We have found 401, Unauthorized Error so we fire a POST request to Keycloak
+                     * Server to get another set of tokens.
+                     * **/
+                    return this.handle401Error(req, next);
+                } else if (error instanceof HttpErrorResponse && error.status === 400) {
+                    /**
+                     * We have encountered a 400, Bad Request Error. The refresh token presented to
+                     * Keycloak has expired or incorrect, hence, we redirect the user to Login
+                     * **/
+                    this.handle400Error(error);
+                    return throwError(error);
+                } else {
+                    return throwError(error);
+                }
+            })
+        );
+    }
 
-## Code scaffolding
+    private handle401Error(request: HttpRequest<any>, next: HttpHandler) {
+        if (!this.isRefreshing) {
+            this.isRefreshing = true;
+            this.refreshTokenSubject.next(null);
+            return this.authService.refreshToken().pipe(
+                switchMap((token: any) => {
+                    this.isRefreshing = false;
+                    this.refreshTokenSubject.next(token.jwt);
+                    return next.handle(AuthHttpInterceptor.addToken(request, token.jwt));
+                }));
 
-Run `ng g component my-component --project=my-app` to generate a new component.
+        } else {
+            return this.refreshTokenSubject.pipe(
+                filter(token => token != null),
+                take(1),
+                switchMap(jwt => {
+                    return next.handle(AuthHttpInterceptor.addToken(request, jwt));
+                }));
+        }
+    }
 
-## Build
+    handle400Error(error) {
+        //if (error && error.status === 400 && error.error && error.error.error === 'invalid_grant') {
+        console.log("Found a 400 while trying to refresh a token, likely expired.")
+        // If we get a 400 and the error message is 'invalid_grant', the token is no longer valid so logout.
+        return this.authService.logout();
+    }
 
-Run `ng build my-app` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+    //method to insert the auth header
+    private static addToken(request: HttpRequest<any>, token: string) {
+        return request.clone({
+            setHeaders: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+    }
+} 
+````
 
-## Running unit tests
+### Spring Boot REST API | Spring Security | Keycloak
 
-Run `ng test my-app` to execute the unit tests via [Jest](https://jestjs.io).
+There is a ready to use Adapter for Spring Boot projects
 
-Run `nx affected:test` to execute the unit tests affected by a change.
+	    <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-spring-boot-starter</artifactId>
+        </dependency>
 
-## Running end-to-end tests
+This dependecny makes the Spring Boot project aware that we are using Keycloak for JWT Authentication.
+We also need to specify the following in our properties file
+	
+	#Keycloak configurations
+	keycloak.auth-server-url=http://localhost:8080/auth
+	keycloak.realm=angular
+	keycloak.public-client=true
+	keycloak.resource=angular-login
+	keycloak.principal-attribute=preferred_username
 
-Run `ng e2e my-app` to execute the end-to-end tests via [Cypress](https://www.cypress.io).
+We need to a WebSecurityConfigurerAdapter for our API, Keycloak comes with one that needs little tweaking
 
-Run `nx affected:e2e` to execute the end-to-end tests affected by a change.
+````Java
+@Configuration
+public class KeycloakWebSecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
-## Understand your workspace
+    //tasks the SimpleAuthorityMapper to make sure roles are not prefixed with ROLE_
+    @Autowired
+    public void configureGlobal(
+            AuthenticationManagerBuilder auth) throws Exception {
+        KeycloakAuthenticationProvider keycloakAuthenticationProvider
+                = keycloakAuthenticationProvider();
+        keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(
+                new SimpleAuthorityMapper());
+        auth.authenticationProvider(keycloakAuthenticationProvider);
+    }
 
-Run `nx dep-graph` to see a diagram of the dependencies of your projects.
+    //this defines that we want to use the Spring Boot properties file support instead of the default keycloak.json
+    @Bean
+    public KeycloakSpringBootConfigResolver KeycloakConfigResolver() {
+        return new KeycloakSpringBootConfigResolver();
+    }
 
-## Further help
+    @Bean
+    @Override
+    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new RegisterSessionAuthenticationStrategy(
+                new SessionRegistryImpl());
+    }
 
-Visit the [Nx Documentation](https://nx.dev/angular) to learn more.
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        super.configure(http);
+        http.cors().and().authorizeRequests()
+                .antMatchers("/api/v1/users/test*")
+                .hasRole("admin") <=== Real Roles here !!!
+                .anyRequest()
+                .permitAll();
+    }
 
-## ☁ Nx Cloud
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200","http://localhost:8080"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Arrays.asList("Access-Control-Allow-Headers","Access-Control-Allow-Origin","Access-Control-Request-Method", "Access-Control-Request-Headers","Origin","Cache-Control", "Content-Type", "Authorization"));
+        configuration.setAllowedMethods(Arrays.asList("DELETE", "GET", "POST", "PATCH", "PUT"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+}
+````
 
-### Computation Memoization in the Cloud
+This gets us up and running with Angular | Keycloak | JWTs | Spring Security
 
-<p align="center"><img src="https://raw.githubusercontent.com/nrwl/nx/master/nx-cloud-card.png"></p>
 
-Nx Cloud pairs with Nx in order to enable you to build and test code more rapidly, by up to 10 times. Even teams that are new to Nx can connect to Nx Cloud and start saving time instantly.
 
-Teams using Nx gain the advantage of building full-stack applications with their preferred framework alongside Nx’s advanced code generation and project dependency graph, plus a unified experience for both frontend and backend developers.
-
-Visit [Nx Cloud](https://nx.app/) to learn more.
