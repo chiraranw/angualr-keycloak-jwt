@@ -10,17 +10,10 @@ import {of} from "rxjs";
     styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-public users=[]
     constructor(private s: AuthService) {
     }
 
     ngOnInit(): void {
-        this.s.testMethod().subscribe(
-            (data)=>{
-                this.users=data;
-                console.log("Response...",data)
-            }
-        );
 
     }
 

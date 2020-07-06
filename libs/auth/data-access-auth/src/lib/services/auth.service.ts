@@ -79,10 +79,6 @@ export class AuthService {
         return localStorage.getItem("refresh_token")
     }
 
-    public testMethod() {
-        return this.http.get<[]>("http://localhost:8081/api/v1/users/test").pipe(retry(1));
-    }
-
     public logout() {
         localStorage.removeItem("jwt_token");
         localStorage.removeItem("refresh_token");
