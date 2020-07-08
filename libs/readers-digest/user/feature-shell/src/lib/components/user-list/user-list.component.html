@@ -1,23 +1,23 @@
 <table class="table table-bordered">
-    <thead>
+  <thead>
     <tr>
-        <th scope="col">#ID</th>
-        <th scope="col">Username</th>
-        <th scope="col">Name</th>
-        <th scope="col">Role</th>
-        <th scope="col">Action</th>
+      <th scope="col">#ID</th>
+      <th scope="col">Username</th>
+      <th scope="col">Name</th>
+      <th scope="col">Role</th>
+      <th scope="col">Action</th>
     </tr>
-    </thead>
-    <tbody>
-    <tr >
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td>
-            <button type="button" class="btn btn-danger" >Delete</button> &nbsp;
-            <button type="button" class="btn btn-info" >Edit</button>
-        </td>
+  </thead>
+  <tbody>
+    <tr *ngFor="let user of users$ | async">
+      <td>{{ user.id }}</td>
+      <td>{{ user.username }}</td>
+      <td>{{ user.name }}</td>
+      <td>{{ user.role }}</td>
+      <td>
+        <button type="button" class="btn btn-danger">Delete</button> &nbsp;
+        <button type="button" class="btn btn-info">Edit</button>
+      </td>
     </tr>
-    </tbody>
+  </tbody>
 </table>
