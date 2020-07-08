@@ -13,11 +13,6 @@ import { Observable, of } from 'rxjs';
 })
 export class UsersListComponent implements OnInit {
   //Observables for State
-  // public users$: Observable<User[]> = of([
-  //   { id: 1, username: 'Nation', name: 'Chirara', role: 'Admin' },
-  //   { id: 1, username: 'Jim', name: 'Chirara', role: 'User' },
-  // ]);
-
   public users$: Observable<User[]>;
   public error$: Observable<any>;
   constructor(private userFacade: UserFacade) {}
@@ -25,6 +20,6 @@ export class UsersListComponent implements OnInit {
   ngOnInit(): void {
     this.userFacade.getUsers();
     this.users$ = this.userFacade.users$;
-    //this.users$ = this.userFacade.error$;
+    this.error$ = this.userFacade.error$;
   }
 }

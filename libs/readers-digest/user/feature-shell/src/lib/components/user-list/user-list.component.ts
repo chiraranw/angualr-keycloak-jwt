@@ -9,7 +9,7 @@ import { Observable } from 'rxjs';
 })
 export class UserListComponent implements OnInit {
   @Input('users') users$: Observable<User[]>;
-  @Input('error') error: string;
+  @Input('error') error$: Observable<any>;
   @Output('delete') delete: EventEmitter<any> = new EventEmitter<any>();
   @Output('edit') edit: EventEmitter<User> = new EventEmitter<User>();
 
